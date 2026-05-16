@@ -1,5 +1,24 @@
 import Notification from './notification.model.js';
 
+export const getNotifications = async (req, res) => {
+    try {
+        const notifications = await Notification.find()
+            .populate('userId', 'firstName lastName email')
+            .sort({ createdAt: -1 }); // Más recientes primero
+ 
+        res.status(200).json({
+            success: true,
+            notifications
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error al obtener las notificaciones',
+            error: error.message
+        });
+    }
+};
+
 export const createNotification = async (req, res) => {
     try {
         const data = req.body;

@@ -1,9 +1,13 @@
 import { Router } from 'express';
-import { createNotification, editNotification } from './notification.controller.js';
+import { getNotifications ,createNotification, editNotification } from './notification.controller.js';
 import { createNotificationValidator, editNotificationValidator } from '../../middlewares/notification-validator.js';
 
 const router = Router();
 
+router.get(
+    '/',
+    getNotifications
+);
 router.post(
     '/', 
     createNotificationValidator, 

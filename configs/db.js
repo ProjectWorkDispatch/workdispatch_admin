@@ -18,7 +18,7 @@ export const dbConnection = async () => {
         });
 
         mongoose.connection.on('open', () => {
-            console.log('MongoDB | conectando a la base de datos restaurant/system');
+            console.log('MongoDB | conectando a la base de datos workDispatch/system');
         });
 
         mongoose.connection.on('reconnected', () => {
