@@ -4,19 +4,14 @@ import { cloudinary } from '../../middlewares/file-uploader.js';
 
 export const getUsers = async (req, res) => {
     try {
-        const users = await User.find();
-
-        res.status(200).json({
-            success: true,
-            data: users
-        });
-
+        const users = await User.find()
+            .populate({
+                path: 'skills', 
+                populate: { path: 'skillId' } 
+            });
+        res.status(200).json({ success: true, users });
     } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: 'Error al obtener usuarios',
-            error: error.message
-        });
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 
