@@ -71,4 +71,14 @@ const userSchema = Schema({
     }
 });
 
+userSchema.virtual('skills', {
+    ref: 'UserSkill',
+    localField: '_id',
+    foreignField: 'userId',
+    justOne: false
+});
+
+userSchema.set('toJSON', { virtuals: true });
+userSchema.set('toObject', { virtuals: true });
+
 export default model('User', userSchema);

@@ -5,9 +5,14 @@ import jwt from 'jsonwebtoken';
 
 export const validateJWT = async (req, res, next) => {
     try {
-        const token =
-            req.header('x-token') ||
-            req.header('Authorization')?.replace('Bearer ', '');
+        const authHeader = req.header('Authorization') || req.header('authorization');
+        const tokenHeader = req.header('x-token');
+
+        let token = tokenHeader || authHeader || null;
+
+        if (token && typeof token === 'string') {
+            token = token.replace(/^(Bearer|bearer)\.\s*/i, '').replace(/^(Bearer|bearer)\s*/i, '');
+        }
 
         if (!token) {
             return res.status(401).json({

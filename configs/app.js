@@ -28,6 +28,8 @@ import ServiceRequestRoutes from '../src/ServiceRequest/serviceRequest.routes.js
 import UserSkillRoutes from '../src/UserSkill/userSkill.routes.js';
 import conversationRoutes from '../src/Conversation/conversation.routes.js'
 import messageRoutes from '../src/Message/message.routes.js';
+import authRoutes from '../src/Auth/auth.routes.js';
+import { seedDefaultData } from './seed.js';
 
 const middleware = (app) => {
     app.use(helmet(helmetConfiguration));
@@ -39,6 +41,7 @@ const middleware = (app) => {
 }
 
 const routes = (app) => {
+    app.use(`${BASE_URL}/Auth`, authRoutes);
     app.use(`${BASE_URL}/users`, userRoutes);
     app.use(`${BASE_URL}/verifications`, verificationRoutes);
     app.use(`${BASE_URL}/categories`, categoryRoutes);
@@ -67,6 +70,7 @@ const initServer = async () => {
 
     try {
         await dbConnection();
+        await seedDefaultData();
         middleware(app);
 
         // Las rutas deben cargarse ANTES que el manejador de errores

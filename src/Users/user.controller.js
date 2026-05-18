@@ -1,13 +1,35 @@
+import jwt from 'jsonwebtoken';
 import User from './user.model.js';
 import { cloudinary } from '../../middlewares/file-uploader.js';
 
+const createAccessToken = (user) =>
+    jwt.sign(
+        { uid: user._id, role: user.role, email: user.email },
+        process.env.SECRET_KEY,
+        { expiresIn: '1h' }
+    );
+
+const createRefreshToken = (user) =>
+    jwt.sign(
+        { uid: user._id, role: user.role, email: user.email },
+        process.env.SECRET_KEY,
+        { expiresIn: '7d' }
+    );
+
+const sanitizeUser = (user) => {
+    if (!user) return null;
+    const safe = typeof user.toObject === 'function' ? user.toObject() : { ...user };
+    delete safe.password;
+    return safe;
+};
 
 export const getUsers = async (req, res) => {
     try {
         const users = await User.find()
+            .select('-password')
             .populate({
-                path: 'skills', 
-                populate: { path: 'skillId' } 
+                path: 'skills',
+                populate: { path: 'skillId' }
             });
         res.status(200).json({ success: true, users });
     } catch (error) {
@@ -19,7 +41,12 @@ export const getUserById = async (req, res) => {
     try {
         const { id } = req.params;
 
-        const user = await User.findById(id);
+        const user = await User.findById(id)
+            .select('-password')
+            .populate({
+                path: 'skills',
+                populate: { path: 'skillId' }
+            });
 
         if (!user) {
             return res.status(404).json({
@@ -32,7 +59,6 @@ export const getUserById = async (req, res) => {
             success: true,
             data: user
         });
-
     } catch (error) {
         res.status(500).json({
             success: false,
@@ -66,9 +92,8 @@ export const createUser = async (req, res) => {
         res.status(201).json({
             success: true,
             message: 'Usuario creado correctamente',
-            data: user
+            data: sanitizeUser(user)
         });
-
     } catch (error) {
         res.status(500).json({
             success: false,
@@ -98,7 +123,6 @@ export const updateUser = async (req, res) => {
             ) {
                 try {
                     const photoPath = userExist.profilePhoto;
-
                     const uploadIndex = photoPath.indexOf('/upload/');
                     if (uploadIndex !== -1) {
                         const afterUpload = photoPath.substring(uploadIndex + 8);
@@ -125,14 +149,13 @@ export const updateUser = async (req, res) => {
             id,
             data,
             { new: true, runValidators: true }
-        );
+        ).select('-password');
 
         res.status(200).json({
             success: true,
             message: 'Usuario actualizado correctamente',
-            data: userUpdated
+            data: sanitizeUser(userUpdated)
         });
-
     } catch (error) {
         console.error('ERROR UPDATE USER:', error);
         res.status(500).json({
@@ -170,12 +193,17 @@ export const login = async (req, res) => {
             });
         }
 
+        const accessToken = createAccessToken(user);
+        const refreshToken = createRefreshToken(user);
+
         res.status(200).json({
             success: true,
             message: 'Inicio de sesión de administrador exitoso',
-            data: user
+            accessToken,
+            refreshToken,
+            expiresIn: 3600,
+            userDetails: sanitizeUser(user)
         });
-
     } catch (error) {
         res.status(500).json({
             success: false,
@@ -204,9 +232,8 @@ export const changeUserStatus = async (req, res) => {
         res.status(200).json({
             success: true,
             message: `Estado del usuario cambiado a ${user.active ? 'ACTIVO' : 'INACTIVO'}`,
-            data: user
+            data: sanitizeUser(user)
         });
-
     } catch (error) {
         res.status(500).json({
             success: false,

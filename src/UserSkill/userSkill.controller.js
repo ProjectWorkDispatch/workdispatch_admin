@@ -8,8 +8,9 @@ import UserSkill from './userSkill.model.js';
  */
 export const getAllUserSkillsAdmin = async (req, res) => {
     try {
-        // Obtenemos los datos sin intentar poblar Skill o Category
         const data = await UserSkill.find()
+            .populate('userId', 'firstName lastName email role')
+            .populate('skillId', 'name');
 
         res.status(200).json({
             success: true,

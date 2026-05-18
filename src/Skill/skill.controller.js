@@ -33,7 +33,7 @@ export const deactivateSkill = async (req, res) => {
 
 export const getAllSkillsAdmin = async (req, res) => {
     try {
-        const skills = await Skill.find();
+        const skills = await Skill.find().populate('categoryId');
         res.status(200).json({ success: true, data: skills });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
