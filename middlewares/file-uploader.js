@@ -1,3 +1,4 @@
+// middlewares/file-uploader.js
 import multer from 'multer';
 import dotenv from 'dotenv';
 import { v2 as cloudinary } from 'cloudinary';
@@ -7,7 +8,6 @@ import { extname } from 'path';
 
 dotenv.config();
 
-// Configuración de Cloudinary
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
@@ -15,7 +15,7 @@ cloudinary.config({
 });
 
 const MIMETYPES = [
-    'image/jpeg',   
+    'image/jpeg',
     'image/png',
     'image/jpg',
     'image/webp',
@@ -27,7 +27,6 @@ const createCloudinaryUploader = (folder) => {
     const storage = new CloudinaryStorage({
         cloudinary: cloudinary,
         params: (req, file) => {
-            // Obtener nombre base sin extensión y sanitizarlo
             const fileExt = extname(file.originalname);
             const baseName = file.originalname.replace(fileExt, '');
             const safeBase = baseName
@@ -35,13 +34,12 @@ const createCloudinaryUploader = (folder) => {
                 .replace(/[^a-z0-9]+/gi, '-')
                 .replace(/^-+|-+$/g, '');
 
-            // UUID corto para evitar colisiones
             const shortUuid = uuidv4().substring(0, 8);
             const publicId = `${safeBase}-${shortUuid}`;
 
             return {
                 folder: folder,
-                public_id: publicId, // no incluir extensión; Cloudinary la calcula
+                public_id: publicId,
                 allowed_formats: ['jpeg', 'jpg', 'png', 'webp', 'avif'],
                 transformation: [{ width: 1000, height: 1000, crop: 'limit' }],
                 resource_type: 'image',
@@ -65,11 +63,20 @@ const createCloudinaryUploader = (folder) => {
 };
 
 // ----------------------------------------------------------------------------------------------------------
-// Aqui van los metodos para la actualización de imagenes, se pueden crear mas metodos para otras carpetas
+// Uploader para fotos de perfil de usuarios (existente, sin cambios)
 export const uploadUserProfileImage = createCloudinaryUploader(
-    process.env.CLOUDINARY_FOLDER || 'workDispatch/users'
+    process.env.CLOUDINARY_USERS_FOLDER || 'workDispatch/users'
+);
+
+// Uploader para imágenes de documentos de verificación (frente y reverso)
+export const uploadVerificationDocuments = createCloudinaryUploader(
+    process.env.CLOUDINARY_VERIFICATIONS_FOLDER || 'workDispatch/verifications'
+);
+
+// Uploader para imágenes del portafolio de trabajadores
+export const uploadPortfolioImage = createCloudinaryUploader(
+    process.env.CLOUDINARY_PORTFOLIO_FOLDER || 'workDispatch/portfolio'
 );
 // ----------------------------------------------------------------------------------------------------------
 
-// Export cloudinary instance para usar en delete-file-on-error
 export { cloudinary };

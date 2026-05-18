@@ -1,3 +1,4 @@
+// middlewares/verifications-validator.js — ARCHIVO COMPLETO REEMPLAZADO
 import { body, param } from 'express-validator';
 import { checkValidators } from './check.validators.js';
 
@@ -34,7 +35,7 @@ export const validateUpdateVerification = [
 
     body('reviewedBy')
         .optional()
-        .isMongoId().withMessage('El reviewedBy no es válido'),
+        .isString().withMessage('El reviewedBy debe ser texto'), // ← era .isMongoId()
 
     body('reviewedAt')
         .optional()
@@ -58,7 +59,7 @@ export const validateUpdateVerificationStatus = [
 
     body('reviewedBy')
         .notEmpty().withMessage('El reviewedBy es obligatorio')
-        .isMongoId().withMessage('El reviewedBy no es válido'),
+        .isString().withMessage('El reviewedBy debe ser texto'), // ← era .isMongoId()
 
     body('rejectionReason')
         .optional()

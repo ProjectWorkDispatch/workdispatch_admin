@@ -1,12 +1,17 @@
+// src/Verifications/verification.controller.js
 import Verification from './verification.model.js';
-import User from '../Users/user.model.js';
 import { createAutomaticNotification } from '../helpers/notification.helper.js';
+
+// ← Se eliminó: import User from '../Users/user.model.js'
+//   El rol del admin ya fue validado por validateJWT + hasAdminRole
+//   antes de llegar a cualquier función de este controlador.
 
 export const getVerifications = async (req, res) => {
     try {
         const verifications = await Verification.find()
-            .populate('userId', 'firstName lastName email role')
-            .populate('reviewedBy', 'firstName lastName email role');
+            .populate('userId', 'firstName lastName email role');
+            // ← Se eliminó el populate de reviewedBy porque ahora es String,
+            //   no una referencia a un documento de Mongo.
 
         res.status(200).json({
             success: true,
@@ -25,7 +30,16 @@ export const getVerifications = async (req, res) => {
 export const updateVerification = async (req, res) => {
     try {
         const { id } = req.params;
-        const updates = req.body || {};
+        const updates = req.body ? { ...req.body } : {};
+
+        if (req.files) {
+            if (req.files['documentImageFront']?.[0]) {
+                updates.documentImageFront = req.files['documentImageFront'][0].path;
+            }
+            if (req.files['documentImageBack']?.[0]) {
+                updates.documentImageBack = req.files['documentImageBack'][0].path;
+            }
+        }
 
         const verification = await Verification.findById(id);
         if (!verification) {
@@ -35,31 +49,11 @@ export const updateVerification = async (req, res) => {
             });
         }
 
-        if (updates.reviewedBy) {
-            const reviewer = await User.findById(updates.reviewedBy);
-
-            if (!reviewer) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Usuario reviewer no encontrado'
-                });
-            }
-
-            if (reviewer.role !== 'ADMIN') {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Solo un usuario con rol ADMIN puede ser reviewer'
-                });
-            }
-        }
-
         const verificationUpdated = await Verification.findByIdAndUpdate(
             id,
             updates,
             { new: true, runValidators: true }
-        )
-            .populate('userId', 'firstName lastName email role')
-            .populate('reviewedBy', 'firstName lastName email role');
+        ).populate('userId', 'firstName lastName email role');
 
         res.status(200).json({
             success: true,
@@ -82,7 +76,6 @@ export const updateVerificationStatus = async (req, res) => {
         const { status, reviewedBy, rejectionReason } = req.body;
 
         const verification = await Verification.findById(id);
-
         if (!verification) {
             return res.status(404).json({
                 success: false,
@@ -90,24 +83,12 @@ export const updateVerificationStatus = async (req, res) => {
             });
         }
 
-        const reviewer = await User.findById(reviewedBy);
-
-        if (!reviewer) {
-            return res.status(404).json({
-                success: false,
-                message: 'Usuario reviewer no encontrado'
-            });
-        }
-
-        if (reviewer.role !== 'ADMIN') {
-            return res.status(400).json({
-                success: false,
-                message: 'Solo un usuario con rol ADMIN puede revisar verificaciones'
-            });
-        }
+        // ← Se eliminaron los bloques User.findById(reviewedBy) y la
+        //   validación de rol: el middleware hasAdminRole ya garantiza
+        //   que solo un ADMIN llega hasta aquí.
 
         verification.status = status;
-        verification.reviewedBy = reviewedBy;
+        verification.reviewedBy = reviewedBy; // guarda "usr_UkqnMgVEVFAK" tal cual
         verification.reviewedAt = new Date();
 
         if (status === 'REJECTED') {
@@ -118,19 +99,15 @@ export const updateVerificationStatus = async (req, res) => {
 
         await verification.save();
 
-        const mensaje = status === 'APPROVED' 
-            ? '¡Felicidades! Tu cuenta ha sido verificada.' 
+        const mensaje = status === 'APPROVED'
+            ? '¡Felicidades! Tu cuenta ha sido verificada.'
             : `Tu solicitud de verificación ha sido rechazada. Razón: ${rejectionReason || 'No especificada'}.`;
-            
+
         await createAutomaticNotification(
-            verification.userId, 
-            mensaje, 
+            verification.userId,
+            mensaje,
             `VERIFICATION_${status}`
         );
-
-        const verificationUpdated = await Verification.findById(id)
-            .populate('userId', 'firstName lastName email role')
-            .populate('reviewedBy', 'firstName lastName email role');
 
         res.status(200).json({
             success: true,
