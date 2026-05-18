@@ -86,7 +86,35 @@ export const createUser = async (req, res) => {
             });
         }
 
-        const user = new User(data);
+        console.log("REQ BODY:", req.body);
+
+        const authPayload = {
+            firstName: data.firstName,
+            lastName: data.lastName,
+            email: data.email,
+            password: data.password,
+            phone: data.phone,
+            role: data.role,
+            description: data.description || "",
+            address: data.address || "",
+            latitude: data.latitude || 0,
+            longitude: data.longitude || 0
+        };
+
+        const authUser = await createAuthUser(authPayload);
+
+        if (!authUser?.id) {
+            return res.status(500).json({
+                success: false,
+                message: "Error creando usuario en AuthService"
+            });
+        }
+
+        const user = new User({
+            ...data,
+            authUserId: authUser.id
+        });
+
         await user.save();
 
         res.status(201).json({
