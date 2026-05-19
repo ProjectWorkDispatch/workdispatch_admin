@@ -6,16 +6,16 @@ import Proposal from './Proposal.model.js';
 export const getAllProposals = async (req, res) => {
     try {
         const proposals = await Proposal.find()
-            .populate('serviceRequestId', 'title description') 
-            .populate('workerId', 'firstName lastName email')    
-            .sort({ createdAt: -1 });                          
+            .populate('serviceRequestId', 'title description')
+            .populate('workerId', 'firstName lastName email')
+            .sort({ createdAt: -1 });
 
-        return res.send({ success: true, proposals });
+        return res.status(200).json({ success: true, proposals });
     } catch (err) {
-        return res.status(500).send({
+        return res.status(500).json({
             success: false,
             message: 'Error al listar propuestas',
-            err: err.message
+            error: err.message
         });
     }
 };
@@ -24,15 +24,29 @@ export const getAllProposals = async (req, res) => {
 export const deactivateProposal = async (req, res) => {
     try {
         const { id } = req.params;
-        const proposal = await Proposal.findByIdAndUpdate(id,
+        const proposal = await Proposal.findByIdAndUpdate(
+            id,
             { status: 'CANCELLED', deletedAt: new Date() },
             { new: true }
         );
 
-        if (!proposal) return res.status(404).send({ success: false, message: 'Propuesta no encontrada' });
+        if (!proposal) {
+            return res.status(404).json({
+                success: false,
+                message: 'Propuesta no encontrada'
+            });
+        }
 
-        return res.send({ success: true, message: 'Propuesta desactivada por el administrador', proposal });
+        return res.status(200).json({
+            success: true,
+            message: 'Propuesta desactivada por el administrador',
+            proposal
+        });
     } catch (err) {
-        return res.status(500).send({ success: false, message: 'Error al desactivar la propuesta' });
+        return res.status(500).json({
+            success: false,
+            message: 'Error al desactivar la propuesta',
+            error: err.message
+        });
     }
 };
