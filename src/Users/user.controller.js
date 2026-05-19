@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import User from './user.model.js';
 import { cloudinary } from '../../middlewares/file-uploader.js';
+import { createAuthUser } from '../integrations/auth/auth.client.js';
 
 const createAccessToken = (user) =>
     jwt.sign(
