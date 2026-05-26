@@ -1,7 +1,6 @@
 import Conversation from './conversation.model.js';
 import User from '../Users/user.model.js';
 
-// Solo las conversaciones donde participa el admin
 export const getMyConversations = async (req, res) => {
     try {
         const adminUser = await User.findOne({ authUserId: req.user.id }) 
@@ -13,7 +12,7 @@ export const getMyConversations = async (req, res) => {
 
         const conversations = await Conversation.find({
             $or: [{ user1Id: adminUser._id }, { user2Id: adminUser._id }]
-        }).populate('user1Id user2Id', 'firstName lastName email');
+        }).populate('user1Id user2Id', 'firstName lastName email role'); // ← role agregado
 
         res.status(200).json({ success: true, data: conversations });
     } catch (error) {
@@ -21,7 +20,6 @@ export const getMyConversations = async (req, res) => {
     }
 };
 
-// Crear conversación entre el admin y otro usuario
 export const createConversation = async (req, res) => {
     try {
         const { user2Id } = req.body;
@@ -33,13 +31,12 @@ export const createConversation = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Admin no encontrado' });
         }
 
-        // Verificar si ya existe una conversación entre estos dos usuarios
         const existing = await Conversation.findOne({
             $or: [
                 { user1Id: adminUser._id, user2Id },
                 { user1Id: user2Id, user2Id: adminUser._id }
             ]
-        }).populate('user1Id user2Id', 'firstName lastName email');
+        }).populate('user1Id user2Id', 'firstName lastName email role'); // ← role agregado
 
         if (existing) {
             return res.status(200).json({ success: true, data: existing, message: 'Conversación ya existente' });
@@ -52,7 +49,7 @@ export const createConversation = async (req, res) => {
         await conversation.save();
 
         const populated = await Conversation.findById(conversation._id)
-            .populate('user1Id user2Id', 'firstName lastName email');
+            .populate('user1Id user2Id', 'firstName lastName email role'); // ← role agregado
 
         res.status(201).json({ success: true, data: populated });
     } catch (error) {
