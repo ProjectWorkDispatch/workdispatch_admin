@@ -1,17 +1,11 @@
-// src/Verifications/verification.controller.js
 import Verification from './verification.model.js';
+import User from '../Users/user.model.js';
 import { createAutomaticNotification } from '../helpers/notification.helper.js';
-
-// ← Se eliminó: import User from '../Users/user.model.js'
-//   El rol del admin ya fue validado por validateJWT + hasAdminRole
-//   antes de llegar a cualquier función de este controlador.
 
 export const getVerifications = async (req, res) => {
     try {
         const verifications = await Verification.find()
             .populate('userId', 'firstName lastName email role');
-            // ← Se eliminó el populate de reviewedBy porque ahora es String,
-            //   no una referencia a un documento de Mongo.
 
         res.status(200).json({
             success: true,
@@ -83,21 +77,22 @@ export const updateVerificationStatus = async (req, res) => {
             });
         }
 
-        // ← Se eliminaron los bloques User.findById(reviewedBy) y la
-        //   validación de rol: el middleware hasAdminRole ya garantiza
-        //   que solo un ADMIN llega hasta aquí.
-
+        // Actualizar la verificación
         verification.status = status;
-        verification.reviewedBy = reviewedBy; // guarda "usr_UkqnMgVEVFAK" tal cual
+        verification.reviewedBy = reviewedBy;
         verification.reviewedAt = new Date();
-
-        if (status === 'REJECTED') {
-            verification.rejectionReason = rejectionReason || null;
-        } else {
-            verification.rejectionReason = null;
-        }
+        verification.rejectionReason = status === 'REJECTED'
+            ? (rejectionReason || null)
+            : null;
 
         await verification.save();
+
+        // Sincronizar verificationStatus en el User
+        await User.findByIdAndUpdate(
+            verification.userId,
+            { verificationStatus: status === 'APPROVED' },
+            { runValidators: false }
+        );
 
         const mensaje = status === 'APPROVED'
             ? '¡Felicidades! Tu cuenta ha sido verificada.'

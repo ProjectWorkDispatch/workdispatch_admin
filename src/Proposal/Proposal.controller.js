@@ -1,6 +1,8 @@
 'use strict';
 
 import Proposal from './Proposal.model.js';
+import Service from '../Service/Service.model.js';
+import ServiceRequest from '../ServiceRequest/serviceRequest.model.js';
 
 // ADMIN: Ver todas las propuestas
 export const getAllProposals = async (req, res) => {
