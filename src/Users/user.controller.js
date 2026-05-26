@@ -70,12 +70,24 @@ const sanitizeUser = (user) => {
 // ─────────────────────────────────────────────────────────
 export const getUsers = async (req, res) => {
     try {
-        const users = await User.find()
+        const { search, role } = req.query;
+
+        const filter = { role: { $ne: 'ADMIN' } }; // nunca devolver admins
+
+        if (role) filter.role = role;
+
+        if (search) {
+            filter.$or = [
+                { firstName: { $regex: search, $options: 'i' } },
+                { lastName: { $regex: search, $options: 'i' } },
+                { email: { $regex: search, $options: 'i' } }
+            ];
+        }
+
+        const users = await User.find(filter)
             .select('-password')
-            .populate({
-                path: 'skills',
-                populate: { path: 'skillId' }
-            });
+            .populate({ path: 'skills', populate: { path: 'skillId' } });
+
         res.status(200).json({ success: true, users });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
