@@ -1,6 +1,17 @@
 'use strict';
 
 import ServiceRequest from './serviceRequest.model.js';
+import { cloudinary } from '../../middlewares/file-uploader.js';
+
+const getUploadedServiceRequestImage = (req) => {
+    if (req.file) return req.file;
+    if (!req.files) return null;
+
+    return req.files.serviceImage?.[0]
+        || req.files.image?.[0]
+        || req.files.photo?.[0]
+        || null;
+};
 
 // ADMIN: Ver todas las solicitudes del sistema
 export const getAllRequestsAdmin = async (req, res) => {
@@ -86,6 +97,56 @@ export const changeRequestStatusAdmin = async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Error al cambiar el estado de la solicitud',
+            error: error.message
+        });
+    }
+};
+
+// ADMIN: Reemplazar imagen de una solicitud
+// PATCH /ServiceRequest/:id/image - multipart/form-data, campo: serviceImage
+export const updateRequestImageAdmin = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const uploadedImage = getUploadedServiceRequestImage(req);
+
+        if (!uploadedImage) {
+            return res.status(400).json({
+                success: false,
+                message: 'No se proporciono ninguna imagen'
+            });
+        }
+
+        const request = await ServiceRequest.findById(id);
+
+        if (!request) {
+            return res.status(404).json({
+                success: false,
+                message: 'Solicitud no encontrada'
+            });
+        }
+
+        const previousPublicId = request.serviceImage?.public_id;
+
+        request.serviceImage = {
+            url: uploadedImage.path,
+            public_id: uploadedImage.filename
+        };
+
+        await request.save();
+
+        if (previousPublicId && previousPublicId !== request.serviceImage.public_id) {
+            await cloudinary.uploader.destroy(previousPublicId);
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: 'Imagen de la solicitud actualizada correctamente',
+            data: request
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: 'Error al actualizar la imagen de la solicitud',
             error: error.message
         });
     }

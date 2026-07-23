@@ -77,6 +77,10 @@ export const uploadVerificationDocuments = createCloudinaryUploader(
 export const uploadPortfolioImage = createCloudinaryUploader(
     process.env.CLOUDINARY_PORTFOLIO_FOLDER || 'workDispatch/portfolio'
 );
+
+export const uploadServiceRequestImage = createCloudinaryUploader(
+    process.env.CLOUDINARY_SERVICE_REQUESTS_FOLDER || 'workDispatch/serviceRequests'
+);
 // ----------------------------------------------------------------------------------------------------------
 
 export { cloudinary };
