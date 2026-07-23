@@ -2,7 +2,6 @@ import jwt from 'jsonwebtoken';
 import axios from 'axios';
 import User from './user.model.js';
 import { cloudinary } from '../../middlewares/file-uploader.js';
-import { createAuthUser } from '../integrations/auth/auth.client.js';
 
 // URL del AuthService (C#) - ajusta el puerto si es diferente
 const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || 'http://localhost:5149';
