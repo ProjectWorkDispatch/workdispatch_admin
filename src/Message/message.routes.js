@@ -1,16 +1,15 @@
 import { Router } from 'express';
-import {
-    getAllConversations
-} from '../Conversation/conversation.controller.js';
+import { getMessagesByConversation, sendMessage, getUnreadCount, changeMessageStatus } from './message.controller.js';
+import { validateJWT } from '../../middlewares/validate-jwt.js';
+import { hasAdminRole } from '../../middlewares/hasAdminRole.js';
 
-import {
-    validateAdminDeleteMessage,
-    validateAdminGetMessagesByConversation
-} from '../../middlewares/message-validator.js'
-import { changeMessageStatus } from './message.controller.js';
 const router = Router();
 
-router.get('/',validateAdminGetMessagesByConversation, getAllConversations);
-router.patch('/:id/status', validateAdminDeleteMessage, changeMessageStatus);
+router.use(validateJWT, hasAdminRole);
+
+router.get('/unread', getUnreadCount);
+router.get('/:conversationId', getMessagesByConversation);
+router.post('/', sendMessage);
+router.patch('/:id/status', changeMessageStatus);
 
 export default router;
