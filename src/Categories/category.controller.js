@@ -1,4 +1,6 @@
 import Category from './category.model.js';
+import { normalizeCategoryName } from '../helpers/category.helper.js';
+
 
 export const getCategories = async (req, res) => {
     try {
@@ -49,7 +51,11 @@ export const createCategory = async (req, res) => {
     try {
         const data = req.body;
 
-        const existingCategory = await Category.findOne({ name: data.name });
+        const normalized = normalizeCategoryName(data.name);
+        const allCategories = await Category.find().select('name');
+        const existingCategory = allCategories.find(
+            (cat) => normalizeCategoryName(cat.name) === normalized
+        );
         if (existingCategory) {
             return res.status(400).json({
                 success: false,

@@ -11,7 +11,13 @@ const serviceRequestSchema = new mongoose.Schema({
     categoryId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Category',
-        required: true
+        required: false
+    },
+    customCategory: {
+        type: String,
+        trim: true,
+        maxLength: 100,
+        default: null
     },
     title: {
         type: String,
