@@ -118,6 +118,16 @@ export const updateVerificationStatus = async (req, res) => {
 
         await verification.save();
 
+        console.log(`[VERIFICATION] status=${status}, userId=${verification.userId}`);
+
+        if (status === 'APPROVED') {
+            const updateResult = await User.findByIdAndUpdate(verification.userId, { verificationStatus: true });
+            console.log(`[VERIFICATION] User.findByIdAndUpdate result:`, updateResult ? { _id: updateResult._id, verificationStatus: updateResult.verificationStatus } : 'null');
+        } else if (status === 'REJECTED') {
+            const updateResult = await User.findByIdAndUpdate(verification.userId, { verificationStatus: false });
+            console.log(`[VERIFICATION] User.findByIdAndUpdate REJECTED result:`, updateResult ? { _id: updateResult._id, verificationStatus: updateResult.verificationStatus } : 'null');
+        }
+
         const mensaje = status === 'APPROVED' 
             ? '¡Felicidades! Tu cuenta ha sido verificada.' 
             : `Tu solicitud de verificación ha sido rechazada. Razón: ${rejectionReason || 'No especificada'}.`;

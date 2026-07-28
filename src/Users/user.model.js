@@ -1,6 +1,11 @@
 import { Schema, model } from 'mongoose';
 
 const userSchema = Schema({
+    authUserId: {
+        type: String,
+        unique: true,
+        sparse: true
+    },
     firstName: {
         type: String,
         required: [true, 'El nombre es obligatorio'],
@@ -20,11 +25,11 @@ const userSchema = Schema({
     },
     password: {
         type: String,
-        required: [true, 'La contraseña es obligatoria']
+        default: ''
     },
     phone: {
         type: String,
-        required: [true, 'El teléfono es obligatorio']
+        default: ''
     },
     role: {
         type: String,
