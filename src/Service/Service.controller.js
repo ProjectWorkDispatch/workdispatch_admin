@@ -15,3 +15,38 @@ export const getAllServices = async (req, res) => {
         return res.status(500).send({ success: false, message: 'Error al listar servicios', err: err.message });
     }
 };
+
+// ADMIN: Cambiar el status de un servicio (moderación/soporte)
+export const updateServiceStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+
+        const validStatuses = ['PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'];
+        if (!status || !validStatuses.includes(status)) {
+            return res.status(400).send({
+                success: false,
+                message: `El status debe ser uno de: ${validStatuses.join(', ')}`
+            });
+        }
+
+        const serviceExist = await Service.findById(id);
+        if (!serviceExist) {
+            return res.status(404).send({ success: false, message: 'Servicio no encontrado' });
+        }
+
+        const updateData = { status };
+        if (status === 'COMPLETED' && !serviceExist.endDate) {
+            updateData.endDate = new Date();
+        }
+
+        const serviceUpdated = await Service.findByIdAndUpdate(id, updateData, {
+            new: true,
+            runValidators: true
+        });
+
+        return res.send({ success: true, message: 'Status actualizado correctamente', service: serviceUpdated });
+    } catch (err) {
+        return res.status(500).send({ success: false, message: 'Error al actualizar el status', err: err.message });
+    }
+};

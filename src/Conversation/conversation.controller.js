@@ -20,6 +20,18 @@ export const getMyConversations = async (req, res) => {
     }
 };
 
+export const getAllConversations = async (req, res) => {
+    try {
+        const conversations = await Conversation.find()
+            .populate('user1Id user2Id', 'firstName lastName email role')
+            .sort({ lastMessageAt: -1 });
+
+        res.status(200).json({ success: true, data: conversations });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Error al obtener conversaciones', error: error.message });
+    }
+};
+
 export const createConversation = async (req, res) => {
     try {
         const { user2Id } = req.body;
