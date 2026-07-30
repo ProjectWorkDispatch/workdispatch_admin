@@ -152,8 +152,6 @@ export const createUser = async (req, res) => {
 
         if (req.file) {
             data.profilePhoto = req.file.path;
-        } else {
-            data.profilePhoto = `users/default-profile.png`;
         }
 
         const existingUser = await User.findOne({ email: data.email?.toLowerCase() });
@@ -323,7 +321,6 @@ export const login = async (req, res) => {
                     role: 'ADMIN',
                     active: true,
                     authUserId: authUserId || undefined,
-                    profilePhoto: 'users/default-profile.png',
                 });
                 await newMongoUser.save();
                 const accessToken = createAccessToken(newMongoUser);
