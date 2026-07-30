@@ -3,7 +3,8 @@ import { Schema, model } from 'mongoose';
 const userSchema = Schema({
     authUserId: {
         type: String,
-        required: true
+        unique: true,
+        sparse: true
     },
     firstName: {
         type: String,
@@ -24,11 +25,11 @@ const userSchema = Schema({
     },
     password: {
         type: String,
-        required: [true, 'La contraseña es obligatoria']
+        default: ''
     },
     phone: {
         type: String,
-        required: [true, 'El teléfono es obligatorio']
+        default: ''
     },
     role: {
         type: String,
@@ -74,15 +75,5 @@ const userSchema = Schema({
         default: true
     }
 });
-
-userSchema.virtual('skills', {
-    ref: 'UserSkill',
-    localField: '_id',
-    foreignField: 'userId',
-    justOne: false
-});
-
-userSchema.set('toJSON', { virtuals: true });
-userSchema.set('toObject', { virtuals: true });
 
 export default model('User', userSchema);

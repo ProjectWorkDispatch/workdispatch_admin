@@ -2,13 +2,12 @@
 
 import ServiceRequest from './serviceRequest.model.js';
 
-// ADMIN: Ver todas las solicitudes del sistema
+// ADMIN: Ver todas las solicitudes del sistema 
 export const getAllRequestsAdmin = async (req, res) => {
     try {
         const requests = await ServiceRequest.find()
-            .populate('clientId',   'firstName lastName email')
+            .populate('clientId', 'firstName lastName email')
             .populate('categoryId', 'name');
-
         res.status(200).json({
             success: true,
             total: requests.length,
@@ -27,11 +26,12 @@ export const getAllRequestsAdmin = async (req, res) => {
 export const deleteRequestAdmin = async (req, res) => {
     try {
         const { id } = req.params;
-
+        
+        // Cambiamos findByIdAndDelete por findByIdAndUpdate
         const deletedRequest = await ServiceRequest.findByIdAndUpdate(
-            id,
-            { isActive: false },
-            { new: true, runValidators: false }
+            id, 
+            { isActive: false }, 
+            { new: true }
         );
 
         if (!deletedRequest) {
@@ -52,26 +52,27 @@ export const deleteRequestAdmin = async (req, res) => {
     }
 };
 
-// ADMIN: Cambiar estado de una solicitud (CANCELLED, CLOSED, etc.)
-export const changeRequestStatusAdmin = async (req, res) => {
+// ADMIN: Actualizar estado de una solicitud
+export const updateRequestStatusAdmin = async (req, res) => {
     try {
         const { id } = req.params;
         const { status } = req.body;
 
         const validStatuses = ['OPEN', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED', 'CLOSED'];
-        if (!status || !validStatuses.includes(status)) {
+        if (!validStatuses.includes(status)) {
             return res.status(400).json({
                 success: false,
-                message: `Estado inválido. Los valores permitidos son: ${validStatuses.join(', ')}`
+                message: `Estado inválido. Debe ser uno de: ${validStatuses.join(', ')}`
             });
         }
 
         const updated = await ServiceRequest.findByIdAndUpdate(
             id,
             { status },
-            { new: true, runValidators: false }
-        ).populate('clientId',   'firstName lastName email')
-         .populate('categoryId', 'name');
+            { new: true, runValidators: true }
+        )
+            .populate('clientId', 'firstName lastName email')
+            .populate('categoryId', 'name');
 
         if (!updated) {
             return res.status(404).json({ success: false, message: 'Solicitud no encontrada' });
@@ -79,13 +80,13 @@ export const changeRequestStatusAdmin = async (req, res) => {
 
         res.status(200).json({
             success: true,
-            message: `Estado de la solicitud cambiado a ${status}`,
-            serviceRequest: updated
+            message: `Solicitud actualizada a estado ${status}`,
+            data: updated
         });
     } catch (error) {
         res.status(500).json({
             success: false,
-            message: 'Error al cambiar el estado de la solicitud',
+            message: 'Error al actualizar el estado de la solicitud',
             error: error.message
         });
     }
