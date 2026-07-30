@@ -44,7 +44,7 @@ const serviceRequestSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['OPEN', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'],
+        enum: ['OPEN', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED', 'CLOSED'],
         default: 'OPEN'
     },
     isActive: { // <--- esto para soft delete.

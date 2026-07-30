@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getAllRequestsAdmin, deleteRequestAdmin } from './serviceRequest.controller.js';
+import { getAllRequestsAdmin, deleteRequestAdmin, updateRequestStatusAdmin } from './serviceRequest.controller.js';
 import { estimateBudgetAI } from './ai.controller.js';
 import { validateServiceRequestId } from '../../middlewares/serviceRequest-validator.js';
 
@@ -10,6 +10,7 @@ router.post('/ai/estimate-budget', estimateBudgetAI);
 
 // Rutas protegidas para ADMIN
 router.get('/', getAllRequestsAdmin);
+router.patch('/:id/status', validateServiceRequestId, updateRequestStatusAdmin);
 router.delete('/:id', validateServiceRequestId, deleteRequestAdmin);
 
 export default router;
