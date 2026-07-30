@@ -5,7 +5,8 @@ import WorkerPortfolio from './WorkerPortFolio.model.js';
 // ADMIN: Ver todos los Portafolios (incluyendo activos e inactivos)
 export const getAllPortfolios = async (req, res) => {
     try {
-        const portfolios = await WorkerPortfolio.find();
+        const portfolios = await WorkerPortfolio.find()
+            .populate('workerId', 'firstName lastName email role');
         return res.send({ success: true, portfolios });
     } catch (err) {
         return res.status(500).send({
@@ -28,6 +29,7 @@ export const moderateRecord = async (req, res) => {
         record.deletedAt = record.status === 'INACTIVE' ? new Date() : null;
 
         await record.save();
+        await record.populate('workerId', 'firstName lastName email role');
 
         return res.send({
             success: true,
