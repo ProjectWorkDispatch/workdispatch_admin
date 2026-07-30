@@ -3,6 +3,10 @@
 import { Schema, model } from 'mongoose';
 
 const serviceSchema = Schema({
+    serviceCode: {
+        type: String,
+        unique: true
+    },
     requestId: {
         type: Schema.Types.ObjectId,
         ref: 'ServiceRequest',
@@ -34,7 +38,7 @@ const serviceSchema = Schema({
     },
     cancelledBy: {
         type: String,
-        enum: ['CLIENT', 'WORKER'],
+        enum: ['CLIENT', 'WORKER', null],
         default: null
     },
     startDate: {
@@ -44,7 +48,50 @@ const serviceSchema = Schema({
     endDate: {
         type: Date,
         default: null
-    }
+    },
+    scheduledDate: {
+        type: Date,
+        default: null
+    },
+    estimatedDurationDays: {
+        type: Number,
+        default: null,
+        min: 1
+    },
+    estimatedStartDate: {
+        type: Date,
+        default: null
+    },
+    estimatedEndDate: {
+        type: Date,
+        default: null
+    },
+    generalPlan: {
+        type: String,
+        default: '',
+        maxLength: 1000
+    },
+    workPlan: [{
+        dayNumber: { type: Number, required: true },
+        date: { type: Date, required: true },
+        description: { type: String, required: true, maxLength: 300 },
+        status: {
+            type: String,
+            enum: ['PENDING', 'DONE', 'VERIFIED', 'DISPUTED'],
+            default: 'PENDING'
+        },
+        clientNote: { type: String, default: null, maxLength: 300 },
+        verifiedAt: { type: Date, default: null },
+        disputedAt: { type: Date, default: null }
+    }]
 }, { versionKey: false, timestamps: true });
+
+// Genera SVC-001, SVC-002...
+serviceSchema.pre('save', async function () {
+    if (!this.serviceCode) {
+        const count = await this.constructor.countDocuments();
+        this.serviceCode = `SVC-${String(count + 1).padStart(3, '0')}`;
+    }
+});
 
 export default model('Service', serviceSchema);
