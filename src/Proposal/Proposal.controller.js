@@ -5,7 +5,9 @@ import Proposal from './Proposal.model.js';
 // ADMIN: Ver todas las propuestas
 export const getAllProposals = async (req, res) => {
     try {
-        const proposals = await Proposal.find();
+        const proposals = await Proposal.find()
+            .populate('serviceRequestId', 'title')
+            .populate('workerId', 'firstName lastName');
         
         return res.send({ success: true, proposals });
     } catch (err) {
