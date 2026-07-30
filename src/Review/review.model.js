@@ -28,6 +28,10 @@ const reviewSchema = new Schema({
         type: String,
         required: [true, 'El comentario es obligatorio']
     },
+    LowRatingReasons: {
+        type: [String],
+        default: undefined
+    },
     Status: {
         type: Boolean,
         default: true 

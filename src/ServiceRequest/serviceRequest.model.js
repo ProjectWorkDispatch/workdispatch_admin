@@ -11,28 +11,38 @@ const serviceRequestSchema = new mongoose.Schema({
     categoryId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Category',
-        required: true
+        required: false
+    },
+    customCategory: {
+        type: String,
+        trim: true,
+        maxLength: 100,
+        default: null
     },
     title: {
         type: String,
-        required: [true, 'El título es obligatorio'],
+        required: [true, 'El titulo es obligatorio'],
         trim: true
     },
     description: {
         type: String,
-        required: [true, 'La descripción es obligatoria']
+        required: [true, 'La descripcion es obligatoria']
+    },
+    serviceImage: {
+        url: { type: String, default: null },
+        public_id: { type: String, default: null }
     },
     address: {
         type: String,
-        required: [true, 'La dirección es obligatoria']
+        required: [true, 'La direccion es obligatoria']
     },
     latitude: {
         type: Number,
-        required: [true, 'La latitud es obligatoria para la ubicación']
+        required: [true, 'La latitud es obligatoria para la ubicacion']
     },
     longitude: {
         type: Number,
-        required: [true, 'La longitud es obligatoria para la ubicación']
+        required: [true, 'La longitud es obligatoria para la ubicacion']
     },
     budgetMin: {
         type: Number,
@@ -44,10 +54,10 @@ const serviceRequestSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['OPEN', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED', 'CLOSED'],
+        enum: ['OPEN', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'],
         default: 'OPEN'
     },
-    isActive: { // <--- esto para soft delete.
+    isActive: {
         type: Boolean,
         default: true
     }

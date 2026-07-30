@@ -23,6 +23,12 @@ const proposalSchema = Schema({
         required: [true, 'El mensaje de la propuesta es obligatorio'],
         maxLength: [500, 'El mensaje no puede exceder los 500 caracteres']
     },
+    rejectionReason: {
+        type: String,
+        trim: true,
+        maxLength: [300, 'El motivo no puede exceder los 300 caracteres'],
+        default: null
+    },
     status: {
         type: String,
         enum: ['PENDING', 'ACCEPTED', 'REJECTED', 'CANCELLED'],

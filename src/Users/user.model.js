@@ -23,13 +23,9 @@ const userSchema = Schema({
         lowercase: true,
         trim: true
     },
-    password: {
-        type: String,
-        default: ''
-    },
     phone: {
         type: String,
-        default: ''
+        required: [true, 'El telefono es obligatorio']
     },
     role: {
         type: String,
@@ -49,6 +45,11 @@ const userSchema = Schema({
         default: 1,
         min: 1,
         max: 5
+    },
+    disputeCount: {
+        type: Number,
+        default: 0,
+        min: 0
     },
     verificationStatus: {
         type: Boolean,

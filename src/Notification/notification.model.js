@@ -17,6 +17,10 @@ const notificationSchema = new Schema({
     Type: {
         type: String,
         required: [true, 'El tipo de notificación es obligatorio']
+    },
+    relatedId: {
+        type: Schema.Types.ObjectId,
+        default: null
     }
 }, {
     timestamps: true,

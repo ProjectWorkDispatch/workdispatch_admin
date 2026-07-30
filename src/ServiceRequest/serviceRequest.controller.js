@@ -58,7 +58,7 @@ export const updateRequestStatusAdmin = async (req, res) => {
         const { id } = req.params;
         const { status } = req.body;
 
-        const validStatuses = ['OPEN', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED', 'CLOSED'];
+        const validStatuses = ['OPEN', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'];
         if (!validStatuses.includes(status)) {
             return res.status(400).json({
                 success: false,
