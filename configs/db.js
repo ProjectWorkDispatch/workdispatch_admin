@@ -3,6 +3,11 @@
 import mongoose from 'mongoose';
 
 export const dbConnection = async () => {
+
+    if (mongoose.connection.readyState === 1) {
+        return;
+    }
+
     try {
         //Monitoreo
         mongoose.connection.on('error', () => {
@@ -37,7 +42,7 @@ export const dbConnection = async () => {
         });
     } catch (error) {
         console.error(`Error al conectar con la base de datos: ${error}`);
-        process.exit(1);
+        throw error;
     }
 };
 //Ciere Controlado
