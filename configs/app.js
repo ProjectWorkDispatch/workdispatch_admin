@@ -64,18 +64,20 @@ const routes = (app) => {
 
 }
 
-const initServer = async () => {
+const createApp = () => {
     const app = express();
+    middleware(app);
+    routes(app);
+    app.use(errorHandler);
+    return app;
+};
+
+const initServer = async () => {
     const PORT = process.env.PORT || 3001;
 
     try {
         await dbConnection();
-        await seedDefaultData();
-        middleware(app);
-
-        // Las rutas deben cargarse ANTES que el manejador de errores
-        routes(app);
-        app.use(errorHandler);
+        const app = createApp();
 
         app.listen(PORT, () => {
             console.log(`Servidor corriendo en el puerto ${PORT}`);
@@ -87,4 +89,4 @@ const initServer = async () => {
     }
 }
 
-export { initServer };
+export { initServer, createApp };
