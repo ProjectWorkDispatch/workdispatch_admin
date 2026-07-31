@@ -66,6 +66,17 @@ const routes = (app) => {
 
 const createApp = () => {
     const app = express();
+
+    app.use(async (req, res, next) => {
+        try {
+            await dbConnection();
+            next();
+        } catch (error) {
+            console.error('Error al conectar con la base de datos:', error);
+            res.status(500).json({ success: false, message: 'Error de conexión a la base de datos' });
+        }
+    });
+
     middleware(app);
     routes(app);
     app.use(errorHandler);
