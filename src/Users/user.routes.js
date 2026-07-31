@@ -5,6 +5,7 @@ import {
     createUser,
     updateUser,
     login,
+    refresh,
     changeUserStatus
 } from './user.controller.js';
 import {
@@ -21,6 +22,7 @@ import { uploadUserProfileImage } from '../../middlewares/file-uploader.js';
 const router = Router();
 
 router.post('/login', validateAdminLogin, login);
+router.post('/refresh', refresh);
 
 router.use(validateJWT, hasAdminRole);
 

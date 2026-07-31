@@ -42,6 +42,32 @@ const loginAuthUser = async (payload) => {
     throw lastError;
 };
 
+const refreshAuthUser = async (refreshToken) => {
+    const paths = [
+        `${AUTH_SERVICE_URL}/Auth/refresh`,
+        `${AUTH_SERVICE_URL}/auth/refresh`,
+        `${AUTH_SERVICE_URL}/refresh`,
+    ];
+
+    const body = { refreshToken };
+
+    let lastError;
+    for (const url of paths) {
+        try {
+            const response = await axios.post(url, body, {
+                headers: { 'Content-Type': 'application/json' },
+                timeout: 10000,
+            });
+            return response.data;
+        } catch (error) {
+            lastError = error;
+            if (error.response?.status !== 404) throw error;
+        }
+    }
+
+    throw lastError;
+};
+
 const getAuthUserId = (authData) =>
     authData?.userDetails?.id
     || authData?.UserDetails?.Id
@@ -319,6 +345,7 @@ export const login = async (req, res) => {
                         || 'System',
                     email: authEmail,
                     role: 'ADMIN',
+                    phone: '00000000',
                     active: true,
                     authUserId: authUserId || undefined,
                 });
@@ -328,6 +355,7 @@ export const login = async (req, res) => {
                     success: true,
                     message: 'Inicio de sesion de administrador exitoso',
                     accessToken,
+                    refreshToken: authData?.refreshToken || null,
                     expiresIn: 3600,
                     userDetails: sanitizeUser(newMongoUser)
                 });
@@ -365,6 +393,7 @@ export const login = async (req, res) => {
             success: true,
             message: 'Inicio de sesion de administrador exitoso',
             accessToken,
+            refreshToken: authData?.refreshToken || null,
             expiresIn: 3600,
             userDetails: sanitizeUser(user)
         });
@@ -373,6 +402,80 @@ export const login = async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Error al iniciar sesion',
+            error: error.message
+        });
+    }
+};
+
+export const refresh = async (req, res) => {
+    try {
+        const { refreshToken } = req.body;
+        if (!refreshToken) {
+            return res.status(400).json({ success: false, message: 'Refresh token requerido' });
+        }
+
+        let authData;
+        try {
+            authData = await refreshAuthUser(refreshToken);
+        } catch (authError) {
+            const status = authError.response?.status;
+            const authMsg = authError.response?.data?.message
+                || authError.message
+                || 'Error al renovar sesion';
+
+            console.error('AuthService refresh error:', authError.response?.data || authError.message);
+
+            return res.status(status === 401 || status === 403 ? status : 500).json({
+                success: false,
+                message: status === 401 ? 'Sesion invalida o expirada' : `AuthService: ${authMsg}`
+            });
+        }
+
+        const authUserId = getAuthUserId(authData);
+        const authEmail = getAuthUserEmail(authData)?.toLowerCase();
+        const searchFilters = authEmail ? [{ email: authEmail }] : [];
+        if (authUserId) {
+            searchFilters.unshift({ authUserId });
+        }
+
+        const user = await User.findOne({ $or: searchFilters });
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'Usuario no encontrado en Mongo'
+            });
+        }
+
+        if (user.role !== 'ADMIN') {
+            return res.status(403).json({
+                success: false,
+                message: 'No autorizado: solo administradores'
+            });
+        }
+
+        if (user.active === false) {
+            return res.status(403).json({
+                success: false,
+                message: 'Usuario inactivo'
+            });
+        }
+
+        const accessToken = createAccessToken(user);
+
+        res.status(200).json({
+            success: true,
+            message: 'Sesion renovada',
+            accessToken,
+            refreshToken: authData?.refreshToken || null,
+            expiresIn: 3600,
+            userDetails: sanitizeUser(user)
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error al renovar sesion',
             error: error.message
         });
     }
