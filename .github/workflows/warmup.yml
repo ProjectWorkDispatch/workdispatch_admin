@@ -1,0 +1,13 @@
+name: Warmup Admin Backend
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+jobs:
+  warmup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping categorias (MongoDB)
+        run: curl -sf --max-time 30 https://workdispatch-admin-zeta.vercel.app/workDispatch/v1/categories
