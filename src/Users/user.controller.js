@@ -31,7 +31,7 @@ const loginAuthUser = async (payload) => {
         try {
             const response = await axios.post(url, body, {
                 headers: { 'Content-Type': 'application/json' },
-                timeout: 10000,
+                timeout: 30000,
             });
             return response.data;
         } catch (error) {
@@ -56,7 +56,7 @@ const refreshAuthUser = async (refreshToken) => {
         try {
             const response = await axios.post(url, body, {
                 headers: { 'Content-Type': 'application/json' },
-                timeout: 10000,
+                timeout: 30000,
             });
             return response.data;
         } catch (error) {
@@ -114,7 +114,7 @@ const createAuthUser = async (payload) => {
         try {
             const response = await axios.post(url, body, {
                 headers: { 'Content-Type': 'application/json' },
-                timeout: 10000,
+                timeout: 30000,
             });
             const authId = response.data?.user?.id || response.data?.data?.id || response.data?.id;
             if (!authId) throw new Error('AuthService no devolvio un ID de usuario');
